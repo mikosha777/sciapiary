@@ -1,0 +1,468 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: userTasks API
+  description: The API allows to manage user's tasks, including appointments. userTaskTypeID represents the type of the task, i.e. send email, appontment etc.
+  termsOfService: www.scimarketview.com
+  contact:
+    name: Michael Sukachev
+    email: msukachev@scimarketview.com
+    url: http://www.scimarketview.com
+  license:
+    name: SCI Marketview Inc.
+    url: http://www.scimarketview.com
+host: api.deoem.scitorque.com
+basePath: /ResponseDriverAPI/api
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+
+securityDefinitions:
+  UserSecurity:
+    type: apiKey
+    in: header
+    name: JWT-Token
+    x-example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1bmlxdWVfbmFtZSI6ImFsZGVhbGVydXNlcjIwMTYiLCJyb2xlIjpbIkRlYWxlcnNoaXBJbmZvIiwiVXNlck1hbmdlbWVudCIsIlZpZXdBbGxDcmVkaXRBcHBsaWNhdGlvbiIsIkVkaXRBbGxDcmVkaXRBcHBsaWNhdGlvbiIsIkVkaXRNeU93bkNyZWRpdEFwcGxpY2F0aW9uIl0sImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvdXNlcmRhdGEiOiJ7XCJEZWFsZXJJRFwiOjgwMDMsXCJVc2VySURcIjoxMTIwLFwiTGFuZ3VhZ2VDb2RlXCI6XCJlbi1jYVwiLFwiVXNlck5hbWVcIjpcImFsZGVhbGVydXNlcjIwMTZcIixcIlJvbGVzXCI6W1wiRGVhbGVyc2hpcEluZm9cIixcIlVzZXJNYW5nZW1lbnRcIixcIlZpZXdBbGxDcmVkaXRBcHBsaWNhdGlvblwiLFwiRWRpdEFsbENyZWRpdEFwcGxpY2F0aW9uXCIsXCJFZGl0TXlPd25DcmVkaXRBcHBsaWNhdGlvblwiXSxcIlByb2R1Y3RzXCI6W1wiQ3JlZGl0RFJJVkVSXCJdLFwiQXV0aENvZGVcIjpcIkF1dGhfQ29kZV85ZGYzYmM0Zi02NmVlLTQwMWUtOTA1MS0xZmY4ZTcyMjVmNDdfT2JqZWN0XCIsXCJJc1NjaUFkbWluXCI6ZmFsc2UsXCJVc2VyUm9sZVwiOlwiRGVhbGVyXCIsXCJPcmdJZFwiOjB9IiwiaXNzIjoiU0NJIiwiYXVkIjoiaHR0cDovL2NyZWRpdGRyaXZlci5kZW9lbS5zY2l0b3JxdWUuY29tIiwiZXhwIjoxNDcwMTU5NzgyLCJuYmYiOjE0NzAxNDg5ODJ9.2t0xQhwn_Qgx8iqyAGAbjQ5pLfbHYk8l1K9e2wkMdik"
+    
+security:
+  - UserSecurity: [] 
+  
+paths:
+  /usertasks:
+    get:
+      description: Returns all tasks that the user has access to.
+      operationId: getAllUserTasks
+      parameters:
+        - name: customers
+          in: query
+          description: list of customers to filter by
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: integer
+            format: int32
+        - name: assignedUserID
+          in: query
+          description: User that the task is assigned to
+          required: false
+          type: integer
+          format: int32    
+        - name: startDate
+          in: query
+          description: userTask date range - start date
+          required: false
+          type: string
+          format: date
+          pattern: /[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])/
+          x-example: "2016-04-16"
+        - name: endDate
+          in: query
+          description: userTask date range - start date
+          required: false
+          type: string
+          format: date
+          pattern: /[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])/
+          x-example: "2016-04-16"
+        - name: maxRecords
+          in: query
+          description: maximum number of results to return
+          required: false
+          type: integer
+          format: int32
+        - name: pageNumber
+          in: query
+          description: page number
+          required: false
+          type: integer
+          format: int32            
+      responses:
+        200:
+          description: user tasks response
+          schema:
+           required:
+            - itemsTotalCount
+           properties:
+            itemsArray:
+              type: array
+              items:
+                $ref: '#/definitions/UserTask'
+            itemsTotalCount:
+              type: integer
+              format: int32    
+        401:
+          description: user authentication error
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: bad request - request format error
+          schema:
+            $ref: '#/definitions/Error' 
+        403:
+          description: user authorization error
+          schema:
+            $ref: '#/definitions/Error'    
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      description: Creates a new user task.
+      operationId: addUserTask
+      parameters:
+        - name: userTask
+          in: body
+          description: User task to add
+          required: true
+          schema:
+            $ref: '#/definitions/NewUserTask'
+      responses:
+        200:
+          description: userTask response
+          schema:
+            $ref: '#/definitions/UserTask'
+        401:
+          description: user authentication error
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: bad request - request format error
+          schema:
+            $ref: '#/definitions/Error' 
+        403:
+          description: user authorization error
+          schema:
+            $ref: '#/definitions/Error'    
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /usertasks/{id}:
+    get:
+      description: Returns one userTask on a single ID, if the user has an access to the userTask
+      operationId: FindUserTaskById
+      parameters:
+        - name: id
+          in: path
+          description: ID of the userTask to fetch
+          required: true
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: userTask response
+          schema:
+            $ref: '#/definitions/UserTask'
+        401:
+          description: user authentication error
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: bad request - request format error
+          schema:
+            $ref: '#/definitions/Error' 
+        403:
+          description: user authorization error
+          schema:
+            $ref: '#/definitions/Error'    
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      description: Updates existing one.
+      operationId: updateUserTask
+      parameters:
+        - name: id
+          in: path
+          description: ID of the userTask to update
+          required: true
+          type: integer
+          format: int64      
+        - name: userTask
+          in: body
+          description: User task to update
+          required: true
+          schema:
+            $ref: '#/definitions/NewUserTask'
+      responses:
+        200:
+          description: userTask response
+          schema:
+            $ref: '#/definitions/UserTask'
+        401:
+          description: user authentication error
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: bad request - request format error
+          schema:
+            $ref: '#/definitions/Error' 
+        403:
+          description: user authorization error
+          schema:
+            $ref: '#/definitions/Error'    
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'        
+    delete:
+      description: deletes a single userTask based on the ID supplied
+      operationId: deleteUserTask
+      parameters:
+        - name: id
+          in: path
+          description: ID of userTask to delete
+          required: true
+          type: integer
+          format: int64
+      responses:
+        204:
+          description: userTask deleted
+        401:
+          description: user authentication error
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: bad request - request format error
+          schema:
+            $ref: '#/definitions/Error' 
+        403:
+          description: user authorization error
+          schema:
+            $ref: '#/definitions/Error'    
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /usertasks/useravailability:
+    get:
+      description: Returns all tasks that the user has access to for specific period.
+      operationId: getUserAvalability
+      parameters:
+        - name: assignedUserID
+          in: query
+          description: User that the task is assigned to
+          required: false
+          type: integer
+          format: int32      
+        - name: startDate
+          in: query
+          description: userTask date range - start date
+          required: false
+          type: string
+          format: date
+          pattern: /^(?:[2-2]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)$/
+          x-example: "2016-04-16T16:06:05+00:00"
+        - name: endDate
+          in: query
+          description: userTask date range - start date
+          required: false
+          type: string
+          format: date
+          pattern: /^(?:[2-2]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)$/
+          x-example: "2016-04-16T16:06:05+00:00"
+      responses:
+        200:
+          description: user tasks response
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UserTask'
+        401:
+          description: user authentication error
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: bad request - request format error
+          schema:
+            $ref: '#/definitions/Error' 
+        403:
+          description: user authorization error
+          schema:
+            $ref: '#/definitions/Error'    
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /usertasks/usertodolist:
+    get:
+      description: Returns all tasks that the user has access to for specific date.
+      operationId: getUserTodDoList
+      parameters:
+        - name: UserID
+          in: query
+          description: User that the task is assigned to
+          required: false
+          type: integer
+          format: int32      
+        - name: Date
+          in: query
+          description: userTask date range - start date
+          required: false
+          type: string
+          format: date
+          pattern: /^(?:[2-2]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)$/
+          x-example: "2016-04-16T16:06:05+00:00"
+        - name: maxRecords
+          in: query
+          description: maximum number of leads to return
+          required: false
+          type: integer
+          format: int32
+        - name: pageNumber
+          in: query
+          description: page number
+          required: false
+          type: integer
+          format: int32  
+      responses:
+        200:
+          description: user tasks response
+          schema:
+           required:
+            - itemsTotalCount
+           properties:
+            itemsArray:
+              type: array
+              items:
+                $ref: '#/definitions/UserTask'
+            itemsTotalCount:
+              type: integer
+              format: int32
+            percentCompleted:
+              type: integer
+              format: int32              
+        401:
+          description: user authentication error
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: bad request - request format error
+          schema:
+            $ref: '#/definitions/Error' 
+        403:
+          description: user authorization error
+          schema:
+            $ref: '#/definitions/Error'    
+        500:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error' 
+  /usertasks/{id}/taskStatus?{userTaskStatusRefID}:            
+      put:
+        description: Updates existing userTask status.
+        operationId: updateUserTaskStatus
+        parameters:
+          - name: id
+            in: path
+            description: ID of the userTask to update
+            required: true
+            type: integer
+            format: int64      
+          - name: userTaskStatusRefID
+            in: path
+            description: StatusUser task to update
+            required: true
+            type: integer
+            format: int32
+        responses:
+          200:
+            description: userTask response
+            schema:
+              $ref: '#/definitions/UserTask'
+          401:
+            description: user authentication error
+            schema:
+              $ref: '#/definitions/Error'
+          400:
+            description: bad request - request format error
+            schema:
+              $ref: '#/definitions/Error' 
+          403:
+            description: user authorization error
+            schema:
+              $ref: '#/definitions/Error'    
+          500:
+            description: unexpected error
+            schema:
+              $ref: '#/definitions/Error'   
+definitions:
+  UserTask:
+    allOf:
+      - $ref: '#/definitions/NewUserTask'
+      - required:
+        - userTaskId
+        properties:
+          userTaskId:
+            type: integer
+            format: int64
+  NewUserTask:
+    required:
+      - userTaskName
+      - userTaskTypeID
+      - userTaskAssignedUserID
+      - userTaskAssignedUserFullName
+      - userTaskStatusID
+      - userTaskEndDateTime
+      - customerID
+    properties:
+      userTaskId:
+        type: integer
+        format: int64
+      userTaskTypeID:
+        type: integer
+        format: int32
+      userTaskAssignedUserID:
+        type: integer
+        format: int32
+      userTaskAssignedUserFullName:
+        type: string
+        maxLength: 201  
+      userTaskStatusID:
+        type: integer
+        format: int32
+      userTaskName:
+        type: string
+        maxLength: 512
+      userTaskDescription:
+        type: string
+        maxLength: 4000
+      userTaskLocation:
+        type: string  
+      userTaskStartDateTime: 
+        type: string
+        pattern: /^(?:[2-2]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)$/
+        x-example: "2016-04-16T16:06:05+00:00"
+      userTaskEndDateTime: 
+        type: string
+        pattern: /^(?:[2-2]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)$/
+        x-example: "2016-04-16T16:06:05+00:00"
+      customerID:
+        type: integer
+        format: int64
+      customerFullName:
+        type: string
+        readOnly: true
+      leadID:
+        type: integer
+        format: int64
+      sendNotificationToCustomer:
+        type: boolean
+      voiDescription:
+        type: string
+        readOnly: true
+  Error:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: string
+        maxLength: 30
+      message:
+        type: string
+        maxLength: 300
